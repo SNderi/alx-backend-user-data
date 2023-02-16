@@ -49,7 +49,7 @@ class BasicAuth(Auth):
         else:
             email = decoded_base64_authorization_header.split(":")[0]
             passwd = decoded_base64_authorization_header[len(email) + 1:]
-        
+
         return (email, passwd)
 
     def user_object_from_credentials(self, user_email: str, user_pwd:
@@ -62,10 +62,10 @@ class BasicAuth(Auth):
             return None
 
         try:
-           users =  User.search({"email": user_email})
-           if users is None or users == []:
-               return None
-           else:
+            users = User.search({"email": user_email})
+            if users is None or users == []:
+                return None
+            else:
                 for user in users:
                     if user.is_valid_password(user_pwd):
                         return user
