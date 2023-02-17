@@ -9,6 +9,10 @@ from models.user import User
 
 class BasicAuth(Auth):
     """BasicAuth class that inherits from Auth.
+    Methods: extract_base64_authorization_header
+             decode_base64_authorization_header
+             extract_user_credentials
+             user_object_from_credentials
     """
     def extract_base64_authorization_header(self,
                                             authorization_header: str) -> str:
@@ -23,6 +27,7 @@ class BasicAuth(Auth):
     def decode_base64_authorization_header(self, base64_authorization_header:
                                            str) -> str:
         """Returns the decoded value of a Base64 string.
+        Args: base64_authorization_header
         """
         if base64_authorization_header is None or not isinstance(
                 base64_authorization_header, str):
