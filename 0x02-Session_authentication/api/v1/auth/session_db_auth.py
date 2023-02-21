@@ -5,6 +5,7 @@ that inherits from SessionExpAuth.
 
 from .session_exp_auth import SessionExpAuth
 from models.user_session import UserSession
+from datetime import datetime, timedelta
 
 
 class SessionDBAuth(SessionExpAuth):
@@ -17,8 +18,9 @@ class SessionDBAuth(SessionExpAuth):
         if not session_id:
             return None
         kwgs = {'user_id': user_id, 'session_id': session_id}
-        user = UserSession(**kwgs)
-        user.save()
+        user_session = UserSession(**kwgs)
+        user_session.save()
+        UserSession.save_to_file()
 
         return session_id
 
@@ -28,10 +30,20 @@ class SessionDBAuth(SessionExpAuth):
         """
         if session_id is None:
             return None
-        user_id = UserSession.search({"session_id": session_id})
-        if user_id:
-            return user_id
-        return None
+
+        UserSession.load_from_file()
+        user_session = UserSession.search({"session_id": session_id})
+        if not user_id:
+            return None
+        user_session = user_session[0]
+
+        expired_time = user_session.created_at + \
+            timedelta(seconds=self.session_duration)
+
+        if expired_time < datetime.utcnow():
+            return None
+
+        return user_session.user_id
 
     def destroy_session(self, request=None):
         """Destroys the UserSession based on the Session ID
@@ -42,8 +54,24 @@ class SessionDBAuth(SessionExpAuth):
         session_id = self.session_cookie(request)
         if not session_id:
             return False
-        user_session = UserSession.search({"session_id": session_id})
-        if user_session:
-            user_session[0].remove()
-            return True
-        return False
+        user_id = self.user_id_for_session_id(session_id)
+
+        if not user_id:
+            return False
+
+        user_session = UserSession.search({
+            'session_id': session_id
+        })
+
+        if not user_session:
+            return False
+
+        user_session = user_session[0]
+
+        try:
+            user_session.remove()
+            UserSession.save_to_file()
+        except Exception:
+            return False
+
+        return True
