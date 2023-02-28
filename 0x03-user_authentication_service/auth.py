@@ -39,6 +39,62 @@ class Auth:
         registered_passwd = user.hashed_password
         return bcrypt.checkpw(submitted_passwd, registered_passwd)
 
+    def create_session(self, email: str) -> str:
+        """Finds the user corresponding to the email,
+        generates a new UUID and stores it in the database
+        as the user’s session_id, then returns the session ID.
+        """
+        try:
+            user = self._db.find_user_by(email=email)
+        except NoResultFound:
+            return None
+        session_id = _generate_uuid()
+        self._db.update_user(user.id, session_id=session_id)
+        return session_id
+
+    def get_user_from_session_id(self, session_id: str) -> User:
+        """It takes a single session_id string argument and
+        returns the corresponding User or None.
+        """
+        if session_id is None:
+            return None
+        try:
+            user = self._db.find_user_by(session_id=session_id)
+        except NoResultFound:
+            return None
+        return user
+
+    def destroy_session(self, user_id: int) -> None:
+        """It updates the corresponding user’s session ID to None. """
+        if user_id is None:
+            return None
+        try:
+            user = self._db.find_user_by(user_id=user_id)
+        except NoResultFound:
+            return None
+        self._db.update_user(user.id, session_id=None)
+
+    def get_reset_password_token(self, email: str) -> str:
+        """Generarates a UUID token to reset user password. """
+        try:
+            user = self._db.find_user_by(email=email)
+        except NoResultFound:
+            raise ValueError
+        reset_token = _generate_uuid()
+        self._db.update_user(user.id, reset_token=reset_token)
+        return reset_token
+
+    def update_password(self, reset_token: str, password: str) -> None:
+        """A function to change/update user password. """
+        try:
+            user = self._db.find_user_by(reset_token=reset_token)
+        except NoResultFound:
+            raise ValueError
+
+        hashed_password = _hash_password(password)
+        self._db.update_user(user.id, hash_password=hash_password,
+                             reset_token=reset_token)
+
 
 def _hash_password(password: str) -> bytes:
     """Returns a salted hash of the input password,
