@@ -16,7 +16,7 @@ class Auth:
         self._db = DB()
 
     def register_user(self, email: str, password: str) -> User:
-        """Verifys email uniqueness before registering a user in the 
+        """Verifys email uniqueness before registering a user in the
         database."""
         try:
             user = self._db.find_user_by(email=email)
@@ -40,9 +40,9 @@ class Auth:
 
 
 def _hash_password(password: str) -> bytes:
-        """Returns a salted hash of the input password,
-        hashed with bcrypt.hashpw.
-        """
-        passwd_bytes = password.encode('utf-8')
-        salt = bcrypt.gensalt()
-        return bcrypt.hashpw(passwd_bytes, salt)
+    """Returns a salted hash of the input password,
+    hashed with bcrypt.hashpw.
+    """
+    passwd_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    return bcrypt.hashpw(passwd_bytes, salt)

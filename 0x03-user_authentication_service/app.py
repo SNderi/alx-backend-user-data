@@ -7,10 +7,12 @@ from auth import Auth
 
 app = Flask(__name__)
 
+
 @app.route("/", methods=["GET"], strict_slashes=False)
 def welcome():
     """Welcome message."""
     return jsonify({"message": "Bienvenue"})
+
 
 @app.route("/users", methods=["POST"], strict_slashes=False)
 def users():
