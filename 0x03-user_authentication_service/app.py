@@ -92,6 +92,7 @@ def update_password():
     except Exception:
         abort(403)
 
+
 AUTH = Auth()
 
 if __name__ == "__main__":
