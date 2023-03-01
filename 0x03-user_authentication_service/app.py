@@ -45,25 +45,25 @@ def login():
 def logout():
     """An end-point to delete a user's session on logout. """
     session_id = request.cookies.get("session_id")
-    try:
-        user = AUTH.get_user_from_session_id(session_id)
-        AUTH.destroy_session(user.id)
-        return redirect("/")
-    except Exception:
+    user = AUTH.get_user_from_session_id(session_id)
+
+    if user is None:
         abort(403)
+
+    AUTH.destroy_session(user.id)
+    return redirect("/")
 
 
 @app.route("/profile", methods=["GET"], strict_slashes=False)
 def profile():
     """An end-point to handle display of profile information. """
     session_id = request.cookies.get("session_id")
-    if not session_id:
+    user = AUTH.get_user_from_session_id(session_id)
+
+    if user is None:
         abort(403)
-    try:
-        user = AUTH.get_user_from_session_id(session_id)
-        return jsonify({"email": "<user email>"}), 200
-    except Exception:
-        abort(403)
+
+    return jsonify({"email": "<user email>"}), 200
 
 
 @app.route("/reset_password", methods=["POST"], strict_slashes=False)
@@ -71,10 +71,10 @@ def get_reset_password_token():
     """An end-point to handle password resetting token. """
     email = request.form['email']
     try:
-        user = DB.find_user_by(email=email)
-    except NoResultFound:
+        token = AUTH.get_reset_password_token(email)
+    except ValueError:
         abort(403)
-    token = AUTH.get_reset_password_token(email)
+
     return jsonify({"email": email, "reset_token": token})
 
 
@@ -86,11 +86,11 @@ def update_password():
     new_password = request.form['new_password']
 
     try:
-        user = DB.find_user_by(email=email)
-        if user.reset_token == reset_token:
-            AUTH.update_password(reset_token, password)
+        AUTH.update_password(reset_token, password)
     except Exception:
         abort(403)
+
+    return jsonify({"email": email, "message": "Password updated"})
 
 
 AUTH = Auth()

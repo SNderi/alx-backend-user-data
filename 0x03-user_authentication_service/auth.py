@@ -66,13 +66,11 @@ class Auth:
 
     def destroy_session(self, user_id: int) -> None:
         """It updates the corresponding user’s session ID to None. """
-        if user_id is None:
-            return None
         try:
-            user = self._db.find_user_by(user_id=user_id)
-        except NoResultFound:
+            self._db.update_user(user.id, session_id=None)
+        except ValueError:
             return None
-        self._db.update_user(user.id, session_id=None)
+        return None
 
     def get_reset_password_token(self, email: str) -> str:
         """Generarates a UUID token to reset user password. """
@@ -93,7 +91,7 @@ class Auth:
 
         hashed_password = _hash_password(password)
         self._db.update_user(user.id, hash_password=hash_password,
-                             reset_token=reset_token)
+                                 reset_token=None)
 
 
 def _hash_password(password: str) -> bytes:
