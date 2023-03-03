@@ -67,7 +67,7 @@ class Auth:
     def destroy_session(self, user_id: int) -> None:
         """It updates the corresponding user’s session ID to None. """
         try:
-            self._db.update_user(user.id, session_id=None)
+            self._db.update_user(user_id, session_id=None)
         except ValueError:
             return None
         return None
@@ -91,7 +91,7 @@ class Auth:
 
         hashed_password = _hash_password(password)
         self._db.update_user(user.id, hash_password=hash_password,
-                                 reset_token=None)
+                             reset_token=None)
 
 
 def _hash_password(password: str) -> bytes:
